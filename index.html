@@ -1,4 +1,3 @@
-```jsx
 import { useState, useEffect } from "react";
 
 const App = () => {
@@ -254,20 +253,20 @@ const App = () => {
     if (data.useAdvanced) {
       return (
         <div className="text-center">
-          <div className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-1">
+          <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-1">
             {formatNumber(data.value)}
           </div>
-          <div className="text-sm text-gray-400">({formatNumber(data.base)})</div>
-          <div className="text-gray-400 text-sm mt-1">{unit}</div>
+          <div className="text-xs sm:text-sm text-gray-400">({formatNumber(data.base)})</div>
+          <div className="text-gray-400 text-xs sm:text-sm mt-1">{unit}</div>
         </div>
       );
     } else {
       return (
         <div className="text-center">
-          <div className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+          <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
             {formatNumber(data.value)}
           </div>
-          <div className="text-gray-400 text-sm mt-1">{unit}</div>
+          <div className="text-gray-400 text-xs sm:text-sm mt-1">{unit}</div>
         </div>
       );
     }
@@ -277,7 +276,7 @@ const App = () => {
     if (data.useAdvanced) {
       return (
         <div className="text-center">
-          <div className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-1">
+          <div className="text-lg sm:text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-1">
             {data.value} {unit}
           </div>
           <div className="text-xs text-gray-400">({data.base} {unit})</div>
@@ -286,7 +285,7 @@ const App = () => {
     } else {
       return (
         <div className="text-center">
-          <div className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+          <div className="text-lg sm:text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
             {data.value} {unit}
           </div>
         </div>
@@ -297,45 +296,48 @@ const App = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
       {/* Header */}
-      <div className="bg-black/20 backdrop-blur-sm border-b border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-           Сколько калорий?
-          </h1>
-          <p className="text-gray-300 text-center mt-2 text-lg">
-            Научный калькулятор энергетических потребностей
-          </p>
+      <div className="bg-black/20 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="text-center">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+              Каклькулятор калорий
+            </h1>
+            <p className="text-gray-300 text-sm sm:text-base mt-1">
+              Научный калькулятор энергетических потребностей
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Input Form */}
-        <div className="bg-black/30 backdrop-blur-sm rounded-3xl border border-gray-700 p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-white mb-8 text-center">Параметры расчета</h2>
+        <div className="bg-black/30 backdrop-blur-sm rounded-2xl sm:rounded-3xl border border-gray-700 p-4 sm:p-6 mb-6">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-6 text-center">Параметры расчета</h2>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Mobile: Stack vertically, Desktop: Two columns */}
+          <div className="flex flex-col lg:flex-row gap-6">
             {/* Basic Parameters */}
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="flex-1 space-y-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Возраст</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Возраст</label>
                   <input
                     type="number"
                     value={formData.age}
                     onChange={(e) => handleInputChange('age', parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
                     min="15"
                     max="100"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Вес (кг)</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Вес (кг)</label>
                   <input
                     type="number"
                     value={formData.weight}
                     onChange={(e) => handleInputChange('weight', parseFloat(e.target.value) || 0)}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
                     step="0.1"
                     min="40"
                     max="200"
@@ -343,41 +345,41 @@ const App = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Рост (см)</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Рост (см)</label>
                   <input
                     type="number"
                     value={formData.height}
                     onChange={(e) => handleInputChange('height', parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
                     min="140"
                     max="220"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Процент жира</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Процент жира</label>
                   <input
                     type="number"
                     value={formData.bodyFat}
                     onChange={(e) => handleInputChange('bodyFat', e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
                     step="0.1"
                     min="5"
                     max="40"
-                    placeholder="Опционально"
+                    placeholder="Опц."
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Пол</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Пол</label>
                   <select
                     value={formData.gender}
                     onChange={(e) => handleInputChange('gender', e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
                   >
                     <option value="male" className="bg-gray-800">Мужской</option>
                     <option value="female" className="bg-gray-800">Женский</option>
@@ -385,11 +387,11 @@ const App = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Цель</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Цель</label>
                   <select
                     value={formData.goal}
                     onChange={(e) => handleInputChange('goal', e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
                   >
                     <option value="lose" className="bg-gray-800">Похудение</option>
                     <option value="maintain" className="bg-gray-800">Поддержание</option>
@@ -400,13 +402,13 @@ const App = () => {
             </div>
 
             {/* Formula Selection */}
-            <div className="space-y-6">
+            <div className="flex-1 space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-3">Формула основного обмена</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Формула основного обмена</label>
                 <select
                   value={formData.bmrFormula}
                   onChange={(e) => handleInputChange('bmrFormula', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
                 >
                   {Object.entries(formulas.bmr).map(([key, formula]) => (
                     <option key={key} value={key} className="bg-gray-800">
@@ -414,15 +416,15 @@ const App = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-400 mt-2">{formulas.bmr[formData.bmrFormula].description}</p>
+                <p className="text-xs text-gray-400 mt-1">{formulas.bmr[formData.bmrFormula].description}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-3">Метод расчета TDEE</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Метод расчета TDEE</label>
                 <select
                   value={formData.tdeeFormula}
                   onChange={(e) => handleInputChange('tdeeFormula', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
                 >
                   {Object.entries(formulas.tdee).map(([key, formula]) => (
                     <option key={key} value={key} className="bg-gray-800">
@@ -430,15 +432,15 @@ const App = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-400 mt-2">{formulas.tdee[formData.tdeeFormula].description}</p>
+                <p className="text-xs text-gray-400 mt-1">{formulas.tdee[formData.tdeeFormula].description}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-3">Система макронутриентов</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Система макронутриентов</label>
                 <select
                   value={formData.macroFormula}
                   onChange={(e) => handleInputChange('macroFormula', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
                 >
                   {Object.entries(formulas.macro).map(([key, formula]) => (
                     <option key={key} value={key} className="bg-gray-800">
@@ -446,41 +448,41 @@ const App = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-400 mt-2">{formulas.macro[formData.macroFormula].description}</p>
+                <p className="text-xs text-gray-400 mt-1">{formulas.macro[formData.macroFormula].description}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-3">Уровень активности</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Уровень активности</label>
                 <select
                   value={formData.activity}
                   onChange={(e) => handleInputChange('activity', e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
                 >
-                  <option value="sedentary" className="bg-gray-800">Сидячий образ жизни</option>
-                  <option value="light" className="bg-gray-800">Легкая активность (1-3 тренировки)</option>
-                  <option value="moderate" className="bg-gray-800">Умеренная активность (3-5 тренировок)</option>
-                  <option value="active" className="bg-gray-800">Высокая активность (6-7 тренировок)</option>
-                  <option value="veryActive" className="bg-gray-800">Очень высокая активность</option>
+                  <option value="sedentary" className="bg-gray-800">Сидячий</option>
+                  <option value="light" className="bg-gray-800">Легкая (1-3)</option>
+                  <option value="moderate" className="bg-gray-800">Умеренная (3-5)</option>
+                  <option value="active" className="bg-gray-800">Высокая (6-7)</option>
+                  <option value="veryActive" className="bg-gray-800">Очень высокая</option>
                 </select>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Results Section - Three Columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Results Section - Responsive Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
           {/* BMR Calculation */}
-          <div className="bg-black/30 backdrop-blur-sm rounded-3xl border border-gray-700 p-8 hover:border-cyan-500/50 transition-all duration-300">
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center mr-3">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-black/30 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-700 p-4 sm:p-6 hover:border-cyan-500/50 transition-all duration-300 h-full">
+            <div className="flex items-center mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center mr-2 sm:mr-3">
+                <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white">Основной обмен (BMR)</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-white">Основной обмен (BMR)</h3>
             </div>
             
-            <p className="text-gray-300 mb-6 text-sm leading-relaxed">
+            <p className="text-gray-300 mb-4 text-xs sm:text-sm leading-relaxed">
               {formulas.bmr[formData.bmrFormula].description}
             </p>
             
@@ -488,17 +490,17 @@ const App = () => {
           </div>
 
           {/* TDEE Calculation */}
-          <div className="bg-black/30 backdrop-blur-sm rounded-3xl border border-gray-700 p-8 hover:border-green-500/50 transition-all duration-300">
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-3">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-black/30 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-700 p-4 sm:p-6 hover:border-green-500/50 transition-all duration-300 h-full">
+            <div className="flex items-center mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center mr-2 sm:mr-3">
+                <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white">Общий расход (TDEE)</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-white">Общий расход (TDEE)</h3>
             </div>
             
-            <p className="text-gray-300 mb-6 text-sm leading-relaxed">
+            <p className="text-gray-300 mb-4 text-xs sm:text-sm leading-relaxed">
               {formulas.tdee[formData.tdeeFormula].description}
             </p>
             
@@ -506,38 +508,38 @@ const App = () => {
           </div>
 
           {/* Macronutrient Calculation */}
-          <div className="bg-black/30 backdrop-blur-sm rounded-3xl border border-gray-700 p-8 hover:border-purple-500/50 transition-all duration-300">
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mr-3">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-black/30 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-700 p-4 sm:p-6 hover:border-purple-500/50 transition-all duration-300 h-full">
+            <div className="flex items-center mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg sm:rounded-xl flex items-center justify-center mr-2 sm:mr-3">
+                <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white">Макронутриенты</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-white">Макронутриенты</h3>
             </div>
             
-            <p className="text-gray-300 mb-6 text-sm leading-relaxed">
+            <p className="text-gray-300 mb-4 text-xs sm:text-sm leading-relaxed">
               {formulas.macro[formData.macroFormula].description}
             </p>
             
-            <div className="space-y-4">
-              <div className="bg-gradient-to-r from-red-900/50 to-red-800/30 rounded-xl p-4 border border-red-500/20">
+            <div className="space-y-3">
+              <div className="bg-gradient-to-r from-red-900/50 to-red-800/30 rounded-lg sm:rounded-xl p-3 border border-red-500/20">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-red-300">Белки</span>
+                  <span className="font-medium text-red-300 text-sm">Белки</span>
                   {renderMacroResult(results.protein, 'г')}
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-yellow-900/50 to-yellow-800/30 rounded-xl p-4 border border-yellow-500/20">
+              <div className="bg-gradient-to-r from-yellow-900/50 to-yellow-800/30 rounded-lg sm:rounded-xl p-3 border border-yellow-500/20">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-yellow-300">Жиры</span>
+                  <span className="font-medium text-yellow-300 text-sm">Жиры</span>
                   {renderMacroResult(results.fat, 'г')}
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-blue-900/50 to-blue-800/30 rounded-xl p-4 border border-blue-500/20">
+              <div className="bg-gradient-to-r from-blue-900/50 to-blue-800/30 rounded-lg sm:rounded-xl p-3 border border-blue-500/20">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-blue-300">Углеводы</span>
+                  <span className="font-medium text-blue-300 text-sm">Углеводы</span>
                   {renderMacroResult(results.carbs, 'г')}
                 </div>
               </div>
@@ -545,18 +547,21 @@ const App = () => {
           </div>
         </div>
 
-        {/* Formula Information */}
-        <div className="mt-8 bg-black/20 backdrop-blur-sm rounded-3xl border border-gray-700 p-6">
-          <h4 className="font-semibold text-cyan-400 mb-3">Информация о формулах:</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-300">
-            <div>
-              <strong className="text-white">BMR:</strong> {formulas.bmr[formData.bmrFormula].name} - {formulas.bmr[formData.bmrFormula].description}
+        {/* Formula Information - Full width on mobile, half on desktop */}
+        <div className="bg-black/20 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-700 p-4 sm:p-6">
+          <h4 className="font-semibold text-cyan-400 text-sm sm:text-base mb-3">Информация о формулах:</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm text-gray-300">
+            <div className="flex flex-col">
+              <strong className="text-white text-xs sm:text-sm mb-1">BMR:</strong>
+              <span>{formulas.bmr[formData.bmrFormula].name} - {formulas.bmr[formData.bmrFormula].description}</span>
             </div>
-            <div>
-              <strong className="text-white">TDEE:</strong> {formulas.tdee[formData.tdeeFormula].name} - {formulas.tdee[formData.tdeeFormula].description}
+            <div className="flex flex-col">
+              <strong className="text-white text-xs sm:text-sm mb-1">TDEE:</strong>
+              <span>{formulas.tdee[formData.tdeeFormula].name} - {formulas.tdee[formData.tdeeFormula].description}</span>
             </div>
-            <div>
-              <strong className="text-white">БЖУ:</strong> {formulas.macro[formData.macroFormula].name} - {formulas.macro[formData.macroFormula].description}
+            <div className="flex flex-col sm:col-span-2">
+              <strong className="text-white text-xs sm:text-sm mb-1">БЖУ:</strong>
+              <span>{formulas.macro[formData.macroFormula].name} - {formulas.macro[formData.macroFormula].description}</span>
             </div>
           </div>
         </div>
@@ -566,4 +571,3 @@ const App = () => {
 };
 
 export default App;
-```
