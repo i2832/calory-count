@@ -1,573 +1,566 @@
-import { useState, useEffect } from "react";
-
-const App = () => {
-  const [formData, setFormData] = useState({
-    age: 25,
-    weight: 70,
-    height: 175,
-    gender: 'male',
-    activity: 'sedentary',
-    goal: 'maintain',
-    bodyFat: '',
-    bmrFormula: 'mifflin',
-    tdeeFormula: 'multiplier',
-    macroFormula: 'issn'
-  });
-
-  const [results, setResults] = useState({
-    bmr: { value: 0, base: 0, useAdvanced: false },
-    tdee: { value: 0, base: 0, useAdvanced: false },
-    protein: { value: 0, base: 0, useAdvanced: false },
-    carbs: { value: 0, base: 0, useAdvanced: false },
-    fat: { value: 0, base: 0, useAdvanced: false }
-  });
-
-  const formulas = {
-    bmr: {
-      mifflin: {
-        name: 'Миффлин-Сан Жеора',
-        description: 'Современный стандарт, учитывает возраст, вес, рост и пол'
-      },
-      harris: {
-        name: 'Харрис-Бенедикт',
-        description: 'Классическая формула, разработанная в 1919 году'
-      },
-      katch: {
-        name: 'Катч-МакАрдл',
-        description: 'Наиболее точная при известной жировой массе тела'
-      }
-    },
-    tdee: {
-      multiplier: {
-        name: 'Коэффициент активности',
-        description: 'Умножение BMR на уровень физической активности'
-      },
-      faulkner: {
-        name: 'Метод Фолкнера',
-        description: 'Оценка по объему тела и активности'
-      },
-      ml: {
-        name: 'Машинное обучение',
-        description: 'Современные алгоритмы на основе больших данных'
-      }
-    },
-    macro: {
-      issn: {
-        name: 'ISSN Рекомендации',
-        description: 'Международное общество спортивного питания'
-      },
-      acsm: {
-        name: 'ACSM Руководство',
-        description: 'Американский колледж спортивной медицины'
-      },
-      who: {
-        name: 'ВОЗ Стандарты',
-        description: 'Всемирная организация здравоохранения'
-      }
-    }
-  };
-
-  const calculateBMRMifflin = (data) => {
-    if (data.gender === 'male') {
-      return 88.362 + (13.397 * data.weight) + (4.799 * data.height) - (5.677 * data.age);
-    } else {
-      return 447.593 + (9.247 * data.weight) + (3.098 * data.height) - (4.330 * data.age);
-    }
-  };
-
-  const calculateBMRHarris = (data) => {
-    if (data.gender === 'male') {
-      return 66.473 + (13.7516 * data.weight) + (5.0033 * data.height) - (6.755 * data.age);
-    } else {
-      return 655.0955 + (9.5634 * data.weight) + (1.8496 * data.height) - (4.6756 * data.age);
-    }
-  };
-
-  const calculateBMRKatchMcArdle = (leanBodyMass) => {
-    return 370 + (21.6 * leanBodyMass);
-  };
-
-  const getActivityMultiplier = (activity) => {
-    const multipliers = {
-      sedentary: 1.2,
-      light: 1.375,
-      moderate: 1.55,
-      active: 1.725,
-      veryActive: 1.9
-    };
-    return multipliers[activity] || 1.2;
-  };
-
-  const getGoalMultiplier = (goal) => {
-    const multipliers = {
-      lose: 0.8,
-      maintain: 1.0,
-      gain: 1.15
-    };
-    return multipliers[goal] || 1.0;
-  };
-
-  const calculateMacrosISSN = (tdee, goal, weight, leanBodyMass) => {
-    const proteinBase = leanBodyMass || weight;
-    let protein, carbs, fat;
-    
-    if (goal === 'lose') {
-      protein = Math.round(proteinBase * 2.2);
-      fat = Math.round(tdee * 0.25 / 9);
-      carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
-    } else if (goal === 'gain') {
-      protein = Math.round(proteinBase * 1.8);
-      fat = Math.round(tdee * 0.25 / 9);
-      carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
-    } else {
-      protein = Math.round(proteinBase * 1.6);
-      fat = Math.round(tdee * 0.25 / 9);
-      carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
-    }
-    
-    return { protein, carbs, fat };
-  };
-
-  const calculateMacrosACSM = (tdee, goal, weight) => {
-    let protein, carbs, fat;
-    
-    if (goal === 'lose') {
-      protein = Math.round(weight * 1.6);
-      fat = Math.round(tdee * 0.3 / 9);
-      carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
-    } else if (goal === 'gain') {
-      protein = Math.round(weight * 1.2);
-      fat = Math.round(tdee * 0.25 / 9);
-      carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
-    } else {
-      protein = Math.round(weight * 1.0);
-      fat = Math.round(tdee * 0.3 / 9);
-      carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
-    }
-    
-    return { protein, carbs, fat };
-  };
-
-  const calculateMacrosWHO = (tdee, goal, weight) => {
-    let protein, carbs, fat;
-    
-    protein = Math.round(weight * 0.8);
-    fat = Math.round(tdee * 0.3 / 9);
-    carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
-    
-    return { protein, carbs, fat };
-  };
-
-  const updateResults = () => {
-    const hasBodyFat = formData.bodyFat !== '' && formData.bodyFat > 0 && formData.bodyFat < 100;
-    const bodyFatPercent = hasBodyFat ? parseFloat(formData.bodyFat) : 0;
-    const leanBodyMass = hasBodyFat ? formData.weight * (1 - bodyFatPercent / 100) : null;
-
-    // Calculate BMR using selected formula
-    let bmrValue, bmrBaseValue = 0;
-    
-    switch (formData.bmrFormula) {
-      case 'mifflin':
-        bmrValue = calculateBMRMifflin(formData);
-        bmrBaseValue = calculateBMRHarris(formData);
-        break;
-      case 'harris':
-        bmrValue = calculateBMRHarris(formData);
-        bmrBaseValue = calculateBMRMifflin(formData);
-        break;
-      case 'katch':
-        bmrValue = leanBodyMass ? calculateBMRKatchMcArdle(leanBodyMass) : calculateBMRMifflin(formData);
-        bmrBaseValue = calculateBMRMifflin(formData);
-        break;
-      default:
-        bmrValue = calculateBMRMifflin(formData);
-        bmrBaseValue = calculateBMRHarris(formData);
-    }
-
-    // Calculate TDEE
-    const tdeeMultiplier = getActivityMultiplier(formData.activity) * getGoalMultiplier(formData.goal);
-    const tdeeValue = bmrValue * tdeeMultiplier;
-    const tdeeBaseValue = bmrBaseValue * tdeeMultiplier;
-
-    // Calculate macros
-    let macrosValue, macrosBaseValue;
-    
-    switch (formData.macroFormula) {
-      case 'issn':
-        macrosValue = calculateMacrosISSN(tdeeValue, formData.goal, formData.weight, leanBodyMass);
-        macrosBaseValue = calculateMacrosACSM(tdeeBaseValue, formData.goal, formData.weight);
-        break;
-      case 'acsm':
-        macrosValue = calculateMacrosACSM(tdeeValue, formData.goal, formData.weight);
-        macrosBaseValue = calculateMacrosISSN(tdeeBaseValue, formData.goal, formData.weight, leanBodyMass);
-        break;
-      case 'who':
-        macrosValue = calculateMacrosWHO(tdeeValue, formData.goal, formData.weight);
-        macrosBaseValue = calculateMacrosISSN(tdeeBaseValue, formData.goal, formData.weight, leanBodyMass);
-        break;
-      default:
-        macrosValue = calculateMacrosISSN(tdeeValue, formData.goal, formData.weight, leanBodyMass);
-        macrosBaseValue = calculateMacrosACSM(tdeeBaseValue, formData.goal, formData.weight);
-    }
-
-    setResults({
-      bmr: {
-        value: Math.round(bmrValue),
-        base: Math.round(bmrBaseValue),
-        useAdvanced: formData.bmrFormula !== 'mifflin'
-      },
-      tdee: {
-        value: Math.round(tdeeValue),
-        base: Math.round(tdeeBaseValue),
-        useAdvanced: formData.tdeeFormula !== 'multiplier'
-      },
-      protein: {
-        value: macrosValue.protein,
-        base: macrosBaseValue.protein,
-        useAdvanced: formData.macroFormula !== 'issn'
-      },
-      carbs: {
-        value: macrosValue.carbs,
-        base: macrosBaseValue.carbs,
-        useAdvanced: formData.macroFormula !== 'issn'
-      },
-      fat: {
-        value: macrosValue.fat,
-        base: macrosBaseValue.fat,
-        useAdvanced: formData.macroFormula !== 'issn'
-      }
-    });
-  };
-
-  useEffect(() => {
-    updateResults();
-  }, [formData]);
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const formatNumber = (num) => num.toLocaleString('ru-RU');
-
-  const renderResult = (data, unit) => {
-    if (data.useAdvanced) {
-      return (
-        <div className="text-center">
-          <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-1">
-            {formatNumber(data.value)}
-          </div>
-          <div className="text-xs sm:text-sm text-gray-400">({formatNumber(data.base)})</div>
-          <div className="text-gray-400 text-xs sm:text-sm mt-1">{unit}</div>
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriCalc Pro - Калькулятор энергетических потребностей</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#06b6d4',
+                        secondary: '#10b981',
+                        accent: '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+    <!-- Header -->
+    <div class="bg-black/20 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="text-center">
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                    NutriCalc Pro
+                </h1>
+                <p class="text-gray-300 text-sm sm:text-base mt-1">
+                    Научный калькулятор энергетических потребностей
+                </p>
+            </div>
         </div>
-      );
-    } else {
-      return (
-        <div className="text-center">
-          <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-            {formatNumber(data.value)}
-          </div>
-          <div className="text-gray-400 text-xs sm:text-sm mt-1">{unit}</div>
-        </div>
-      );
-    }
-  };
-
-  const renderMacroResult = (data, unit) => {
-    if (data.useAdvanced) {
-      return (
-        <div className="text-center">
-          <div className="text-lg sm:text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-1">
-            {data.value} {unit}
-          </div>
-          <div className="text-xs text-gray-400">({data.base} {unit})</div>
-        </div>
-      );
-    } else {
-      return (
-        <div className="text-center">
-          <div className="text-lg sm:text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-            {data.value} {unit}
-          </div>
-        </div>
-      );
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      {/* Header */}
-      <div className="bg-black/20 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="text-center">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-              Каклькулятор калорий
-            </h1>
-            <p className="text-gray-300 text-sm sm:text-base mt-1">
-              Научный калькулятор энергетических потребностей
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Input Form */}
-        <div className="bg-black/30 backdrop-blur-sm rounded-2xl sm:rounded-3xl border border-gray-700 p-4 sm:p-6 mb-6">
-          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-6 text-center">Параметры расчета</h2>
-          
-          {/* Mobile: Stack vertically, Desktop: Two columns */}
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Basic Parameters */}
-            <div className="flex-1 space-y-4">
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Возраст</label>
-                  <input
-                    type="number"
-                    value={formData.age}
-                    onChange={(e) => handleInputChange('age', parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
-                    min="15"
-                    max="100"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Вес (кг)</label>
-                  <input
-                    type="number"
-                    value={formData.weight}
-                    onChange={(e) => handleInputChange('weight', parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
-                    step="0.1"
-                    min="40"
-                    max="200"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Рост (см)</label>
-                  <input
-                    type="number"
-                    value={formData.height}
-                    onChange={(e) => handleInputChange('height', parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
-                    min="140"
-                    max="220"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Процент жира</label>
-                  <input
-                    type="number"
-                    value={formData.bodyFat}
-                    onChange={(e) => handleInputChange('bodyFat', e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
-                    step="0.1"
-                    min="5"
-                    max="40"
-                    placeholder="Опц."
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Пол</label>
-                  <select
-                    value={formData.gender}
-                    onChange={(e) => handleInputChange('gender', e.target.value)}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
-                  >
-                    <option value="male" className="bg-gray-800">Мужской</option>
-                    <option value="female" className="bg-gray-800">Женский</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Цель</label>
-                  <select
-                    value={formData.goal}
-                    onChange={(e) => handleInputChange('goal', e.target.value)}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
-                  >
-                    <option value="lose" className="bg-gray-800">Похудение</option>
-                    <option value="maintain" className="bg-gray-800">Поддержание</option>
-                    <option value="gain" className="bg-gray-800">Набор массы</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Formula Selection */}
-            <div className="flex-1 space-y-3 sm:space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Формула основного обмена</label>
-                <select
-                  value={formData.bmrFormula}
-                  onChange={(e) => handleInputChange('bmrFormula', e.target.value)}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
-                >
-                  {Object.entries(formulas.bmr).map(([key, formula]) => (
-                    <option key={key} value={key} className="bg-gray-800">
-                      {formula.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-400 mt-1">{formulas.bmr[formData.bmrFormula].description}</p>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Метод расчета TDEE</label>
-                <select
-                  value={formData.tdeeFormula}
-                  onChange={(e) => handleInputChange('tdeeFormula', e.target.value)}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
-                >
-                  {Object.entries(formulas.tdee).map(([key, formula]) => (
-                    <option key={key} value={key} className="bg-gray-800">
-                      {formula.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-400 mt-1">{formulas.tdee[formData.tdeeFormula].description}</p>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Система макронутриентов</label>
-                <select
-                  value={formData.macroFormula}
-                  onChange={(e) => handleInputChange('macroFormula', e.target.value)}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
-                >
-                  {Object.entries(formulas.macro).map(([key, formula]) => (
-                    <option key={key} value={key} className="bg-gray-800">
-                      {formula.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-400 mt-1">{formulas.macro[formData.macroFormula].description}</p>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Уровень активности</label>
-                <select
-                  value={formData.activity}
-                  onChange={(e) => handleInputChange('activity', e.target.value)}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm"
-                >
-                  <option value="sedentary" className="bg-gray-800">Сидячий</option>
-                  <option value="light" className="bg-gray-800">Легкая (1-3)</option>
-                  <option value="moderate" className="bg-gray-800">Умеренная (3-5)</option>
-                  <option value="active" className="bg-gray-800">Высокая (6-7)</option>
-                  <option value="veryActive" className="bg-gray-800">Очень высокая</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Results Section - Responsive Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
-          {/* BMR Calculation */}
-          <div className="bg-black/30 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-700 p-4 sm:p-6 hover:border-cyan-500/50 transition-all duration-300 h-full">
-            <div className="flex items-center mb-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center mr-2 sm:mr-3">
-                <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-white">Основной обмен (BMR)</h3>
-            </div>
-            
-            <p className="text-gray-300 mb-4 text-xs sm:text-sm leading-relaxed">
-              {formulas.bmr[formData.bmrFormula].description}
-            </p>
-            
-            {renderResult(results.bmr, 'ккал/сутки')}
-          </div>
-
-          {/* TDEE Calculation */}
-          <div className="bg-black/30 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-700 p-4 sm:p-6 hover:border-green-500/50 transition-all duration-300 h-full">
-            <div className="flex items-center mb-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center mr-2 sm:mr-3">
-                <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-white">Общий расход (TDEE)</h3>
-            </div>
-            
-            <p className="text-gray-300 mb-4 text-xs sm:text-sm leading-relaxed">
-              {formulas.tdee[formData.tdeeFormula].description}
-            </p>
-            
-            {renderResult(results.tdee, 'ккал/сутки')}
-          </div>
-
-          {/* Macronutrient Calculation */}
-          <div className="bg-black/30 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-700 p-4 sm:p-6 hover:border-purple-500/50 transition-all duration-300 h-full">
-            <div className="flex items-center mb-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg sm:rounded-xl flex items-center justify-center mr-2 sm:mr-3">
-                <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-white">Макронутриенты</h3>
-            </div>
-            
-            <p className="text-gray-300 mb-4 text-xs sm:text-sm leading-relaxed">
-              {formulas.macro[formData.macroFormula].description}
-            </p>
-            
-            <div className="space-y-3">
-              <div className="bg-gradient-to-r from-red-900/50 to-red-800/30 rounded-lg sm:rounded-xl p-3 border border-red-500/20">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-red-300 text-sm">Белки</span>
-                  {renderMacroResult(results.protein, 'г')}
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-r from-yellow-900/50 to-yellow-800/30 rounded-lg sm:rounded-xl p-3 border border-yellow-500/20">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-yellow-300 text-sm">Жиры</span>
-                  {renderMacroResult(results.fat, 'г')}
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-r from-blue-900/50 to-blue-800/30 rounded-lg sm:rounded-xl p-3 border border-blue-500/20">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-blue-300 text-sm">Углеводы</span>
-                  {renderMacroResult(results.carbs, 'г')}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Formula Information - Full width on mobile, half on desktop */}
-        <div className="bg-black/20 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-gray-700 p-4 sm:p-6">
-          <h4 className="font-semibold text-cyan-400 text-sm sm:text-base mb-3">Информация о формулах:</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm text-gray-300">
-            <div className="flex flex-col">
-              <strong className="text-white text-xs sm:text-sm mb-1">BMR:</strong>
-              <span>{formulas.bmr[formData.bmrFormula].name} - {formulas.bmr[formData.bmrFormula].description}</span>
-            </div>
-            <div className="flex flex-col">
-              <strong className="text-white text-xs sm:text-sm mb-1">TDEE:</strong>
-              <span>{formulas.tdee[formData.tdeeFormula].name} - {formulas.tdee[formData.tdeeFormula].description}</span>
-            </div>
-            <div className="flex flex-col sm:col-span-2">
-              <strong className="text-white text-xs sm:text-sm mb-1">БЖУ:</strong>
-              <span>{formulas.macro[formData.macroFormula].name} - {formulas.macro[formData.macroFormula].description}</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
-  );
-};
 
-export default App;
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <!-- Input Form -->
+        <div class="bg-black/30 backdrop-blur-sm rounded-2xl border border-gray-700 p-4 sm:p-6 mb-6">
+            <h2 class="text-xl sm:text-2xl font-semibold text-white mb-6 text-center">Параметры расчета</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Basic Parameters -->
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Возраст</label>
+                            <input type="number" id="age" value="25" 
+                                class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
+                                min="15" max="100">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Вес (кг)</label>
+                            <input type="number" id="weight" value="70" 
+                                class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
+                                step="0.1" min="40" max="200">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Рост (см)</label>
+                            <input type="number" id="height" value="175" 
+                                class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
+                                min="140" max="220">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Процент жира</label>
+                            <input type="number" id="bodyFat" value="" 
+                                class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white placeholder-gray-400 text-sm"
+                                step="0.1" min="5" max="40" placeholder="Опц.">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Пол</label>
+                            <select id="gender" 
+                                class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm">
+                                <option value="male">Мужской</option>
+                                <option value="female">Женский</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">Цель</label>
+                            <select id="goal" 
+                                class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm">
+                                <option value="lose">Похудение</option>
+                                <option value="maintain">Поддержание</option>
+                                <option value="gain">Набор массы</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formula Selection -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Формула основного обмена</label>
+                        <select id="bmrFormula" 
+                            class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm">
+                            <option value="mifflin">Миффлин-Сан Жеора</option>
+                            <option value="harris">Харрис-Бенедикт</option>
+                            <option value="katch">Катч-МакАрдл</option>
+                        </select>
+                        <p id="bmrDescription" class="text-xs text-gray-400 mt-1">Современный стандарт, учитывает возраст, вес, рост и пол</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Метод расчета TDEE</label>
+                        <select id="tdeeFormula" 
+                            class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm">
+                            <option value="multiplier">Коэффициент активности</option>
+                            <option value="faulkner">Метод Фолкнера</option>
+                            <option value="ml">Машинное обучение</option>
+                        </select>
+                        <p id="tdeeDescription" class="text-xs text-gray-400 mt-1">Умножение BMR на уровень физической активности</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Система макронутриентов</label>
+                        <select id="macroFormula" 
+                            class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm">
+                            <option value="issn">ISSN Рекомендации</option>
+                            <option value="acsm">ACSM Руководство</option>
+                            <option value="who">ВОЗ Стандарты</option>
+                        </select>
+                        <p id="macroDescription" class="text-xs text-gray-400 mt-1">Международное общество спортивного питания</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Уровень активности</label>
+                        <select id="activity" 
+                            class="w-full px-3 py-2 sm:px-4 sm:py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-white text-sm">
+                            <option value="sedentary">Сидячий</option>
+                            <option value="light">Легкая (1-3)</option>
+                            <option value="moderate">Умеренная (3-5)</option>
+                            <option value="active">Высокая (6-7)</option>
+                            <option value="veryActive">Очень высокая</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+            <!-- BMR Calculation -->
+            <div class="bg-black/30 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6 hover:border-cyan-500/50 transition-all duration-300">
+                <div class="flex items-center mb-4">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3">
+                        <i class="fas fa-fire text-white text-sm sm:text-base"></i>
+                    </div>
+                    <h3 class="text-lg sm:text-xl font-semibold text-white">Основной обмен (BMR)</h3>
+                </div>
+                
+                <p id="bmrDesc" class="text-gray-300 mb-4 text-xs sm:text-sm leading-relaxed">
+                    Современный стандарт, учитывает возраст, вес, рост и пол
+                </p>
+                
+                <div id="bmrResult" class="text-center">
+                    <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                        0
+                    </div>
+                    <div class="text-gray-400 text-xs sm:text-sm mt-1">ккал/сутки</div>
+                </div>
+            </div>
+
+            <!-- TDEE Calculation -->
+            <div class="bg-black/30 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6 hover:border-green-500/50 transition-all duration-300">
+                <div class="flex items-center mb-4">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3">
+                        <i class="fas fa-bolt text-white text-sm sm:text-base"></i>
+                    </div>
+                    <h3 class="text-lg sm:text-xl font-semibold text-white">Общий расход (TDEE)</h3>
+                </div>
+                
+                <p id="tdeeDesc" class="text-gray-300 mb-4 text-xs sm:text-sm leading-relaxed">
+                    Умножение BMR на уровень физической активности
+                </p>
+                
+                <div id="tdeeResult" class="text-center">
+                    <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                        0
+                    </div>
+                    <div class="text-gray-400 text-xs sm:text-sm mt-1">ккал/сутки</div>
+                </div>
+            </div>
+
+            <!-- Macronutrient Calculation -->
+            <div class="bg-black/30 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6 hover:border-purple-500/50 transition-all duration-300">
+                <div class="flex items-center mb-4">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3">
+                        <i class="fas fa-apple-alt text-white text-sm sm:text-base"></i>
+                    </div>
+                    <h3 class="text-lg sm:text-xl font-semibold text-white">Макронутриенты</h3>
+                </div>
+                
+                <p id="macroDesc" class="text-gray-300 mb-4 text-xs sm:text-sm leading-relaxed">
+                    Международное общество спортивного питания
+                </p>
+                
+                <div class="space-y-3">
+                    <div class="bg-gradient-to-r from-red-900/50 to-red-800/30 rounded-lg p-3 border border-red-500/20">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-red-300 text-sm">Белки</span>
+                            <div id="proteinResult" class="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                                0 г
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-yellow-900/50 to-yellow-800/30 rounded-lg p-3 border border-yellow-500/20">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-yellow-300 text-sm">Жиры</span>
+                            <div id="fatResult" class="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                                0 г
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-blue-900/50 to-blue-800/30 rounded-lg p-3 border border-blue-500/20">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-blue-300 text-sm">Углеводы</span>
+                            <div id="carbsResult" class="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                                0 г
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formula Information -->
+        <div class="bg-black/20 backdrop-blur-sm rounded-xl border border-gray-700 p-4 sm:p-6">
+            <h4 class="font-semibold text-cyan-400 text-sm sm:text-base mb-3">Информация о формулах:</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm text-gray-300">
+                <div class="flex flex-col">
+                    <strong class="text-white text-xs sm:text-sm mb-1">BMR:</strong>
+                    <span id="bmrFormulaInfo">Миффлин-Сан Жеора - Современный стандарт, учитывает возраст, вес, рост и пол</span>
+                </div>
+                <div class="flex flex-col">
+                    <strong class="text-white text-xs sm:text-sm mb-1">TDEE:</strong>
+                    <span id="tdeeFormulaInfo">Коэффициент активности - Умножение BMR на уровень физической активности</span>
+                </div>
+                <div class="flex flex-col sm:col-span-2">
+                    <strong class="text-white text-xs sm:text-sm mb-1">БЖУ:</strong>
+                    <span id="macroFormulaInfo">ISSN Рекомендации - Международное общество спортивного питания</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Formulas data
+        const formulas = {
+            bmr: {
+                mifflin: {
+                    name: 'Миффлин-Сан Жеора',
+                    description: 'Современный стандарт, учитывает возраст, вес, рост и пол'
+                },
+                harris: {
+                    name: 'Харрис-Бенедикт',
+                    description: 'Классическая формула, разработанная в 1919 году'
+                },
+                katch: {
+                    name: 'Катч-МакАрдл',
+                    description: 'Наиболее точная при известной жировой массе тела'
+                }
+            },
+            tdee: {
+                multiplier: {
+                    name: 'Коэффициент активности',
+                    description: 'Умножение BMR на уровень физической активности'
+                },
+                faulkner: {
+                    name: 'Метод Фолкнера',
+                    description: 'Оценка по объему тела и активности'
+                },
+                ml: {
+                    name: 'Машинное обучение',
+                    description: 'Современные алгоритмы на основе больших данных'
+                }
+            },
+            macro: {
+                issn: {
+                    name: 'ISSN Рекомендации',
+                    description: 'Международное общество спортивного питания'
+                },
+                acsm: {
+                    name: 'ACSM Руководство',
+                    description: 'Американский колледж спортивной медицины'
+                },
+                who: {
+                    name: 'ВОЗ Стандарты',
+                    description: 'Всемирная организация здравоохранения'
+                }
+            }
+        };
+
+        // Calculate BMR functions
+        function calculateBMRMifflin(data) {
+            if (data.gender === 'male') {
+                return 88.362 + (13.397 * data.weight) + (4.799 * data.height) - (5.677 * data.age);
+            } else {
+                return 447.593 + (9.247 * data.weight) + (3.098 * data.height) - (4.330 * data.age);
+            }
+        }
+
+        function calculateBMRHarris(data) {
+            if (data.gender === 'male') {
+                return 66.473 + (13.7516 * data.weight) + (5.0033 * data.height) - (6.755 * data.age);
+            } else {
+                return 655.0955 + (9.5634 * data.weight) + (1.8496 * data.height) - (4.6756 * data.age);
+            }
+        }
+
+        function calculateBMRKatchMcArdle(leanBodyMass) {
+            return 370 + (21.6 * leanBodyMass);
+        }
+
+        // Get activity multiplier
+        function getActivityMultiplier(activity) {
+            const multipliers = {
+                sedentary: 1.2,
+                light: 1.375,
+                moderate: 1.55,
+                active: 1.725,
+                veryActive: 1.9
+            };
+            return multipliers[activity] || 1.2;
+        }
+
+        // Get goal multiplier
+        function getGoalMultiplier(goal) {
+            const multipliers = {
+                lose: 0.8,
+                maintain: 1.0,
+                gain: 1.15
+            };
+            return multipliers[goal] || 1.0;
+        }
+
+        // Calculate macros functions
+        function calculateMacrosISSN(tdee, goal, weight, leanBodyMass) {
+            const proteinBase = leanBodyMass || weight;
+            let protein, carbs, fat;
+            
+            if (goal === 'lose') {
+                protein = Math.round(proteinBase * 2.2);
+                fat = Math.round(tdee * 0.25 / 9);
+                carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
+            } else if (goal === 'gain') {
+                protein = Math.round(proteinBase * 1.8);
+                fat = Math.round(tdee * 0.25 / 9);
+                carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
+            } else {
+                protein = Math.round(proteinBase * 1.6);
+                fat = Math.round(tdee * 0.25 / 9);
+                carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
+            }
+            
+            return { protein, carbs, fat };
+        }
+
+        function calculateMacrosACSM(tdee, goal, weight) {
+            let protein, carbs, fat;
+            
+            if (goal === 'lose') {
+                protein = Math.round(weight * 1.6);
+                fat = Math.round(tdee * 0.3 / 9);
+                carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
+            } else if (goal === 'gain') {
+                protein = Math.round(weight * 1.2);
+                fat = Math.round(tdee * 0.25 / 9);
+                carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
+            } else {
+                protein = Math.round(weight * 1.0);
+                fat = Math.round(tdee * 0.3 / 9);
+                carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
+            }
+            
+            return { protein, carbs, fat };
+        }
+
+        function calculateMacrosWHO(tdee, goal, weight) {
+            let protein, carbs, fat;
+            
+            protein = Math.round(weight * 0.8);
+            fat = Math.round(tdee * 0.3 / 9);
+            carbs = Math.round((tdee - (protein * 4) - (fat * 9)) / 4);
+            
+            return { protein, carbs, fat };
+        }
+
+        // Format number with spaces
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+
+        // Update results function
+        function updateResults() {
+            // Get form data
+            const age = parseInt(document.getElementById('age').value) || 0;
+            const weight = parseFloat(document.getElementById('weight').value) || 0;
+            const height = parseInt(document.getElementById('height').value) || 0;
+            const gender = document.getElementById('gender').value;
+            const activity = document.getElementById('activity').value;
+            const goal = document.getElementById('goal').value;
+            const bodyFat = document.getElementById('bodyFat').value;
+            const bmrFormula = document.getElementById('bmrFormula').value;
+            const tdeeFormula = document.getElementById('tdeeFormula').value;
+            const macroFormula = document.getElementById('macroFormula').value;
+
+            // Check if body fat is provided
+            const hasBodyFat = bodyFat !== '' && bodyFat > 0 && bodyFat < 100;
+            const bodyFatPercent = hasBodyFat ? parseFloat(bodyFat) : 0;
+            const leanBodyMass = hasBodyFat ? weight * (1 - bodyFatPercent / 100) : null;
+
+            // Create data object
+            const formData = { age, weight, height, gender, activity, goal };
+
+            // Calculate BMR using selected formula
+            let bmrValue, bmrBaseValue = 0;
+            
+            switch (bmrFormula) {
+                case 'mifflin':
+                    bmrValue = calculateBMRMifflin(formData);
+                    bmrBaseValue = calculateBMRHarris(formData);
+                    break;
+                case 'harris':
+                    bmrValue = calculateBMRHarris(formData);
+                    bmrBaseValue = calculateBMRMifflin(formData);
+                    break;
+                case 'katch':
+                    bmrValue = leanBodyMass ? calculateBMRKatchMcArdle(leanBodyMass) : calculateBMRMifflin(formData);
+                    bmrBaseValue = calculateBMRMifflin(formData);
+                    break;
+                default:
+                    bmrValue = calculateBMRMifflin(formData);
+                    bmrBaseValue = calculateBMRHarris(formData);
+            }
+
+            // Calculate TDEE
+            const tdeeMultiplier = getActivityMultiplier(activity) * getGoalMultiplier(goal);
+            const tdeeValue = bmrValue * tdeeMultiplier;
+            const tdeeBaseValue = bmrBaseValue * tdeeMultiplier;
+
+            // Calculate macros
+            let macrosValue, macrosBaseValue;
+            
+            switch (macroFormula) {
+                case 'issn':
+                    macrosValue = calculateMacrosISSN(tdeeValue, goal, weight, leanBodyMass);
+                    macrosBaseValue = calculateMacrosACSM(tdeeBaseValue, goal, weight);
+                    break;
+                case 'acsm':
+                    macrosValue = calculateMacrosACSM(tdeeValue, goal, weight);
+                    macrosBaseValue = calculateMacrosISSN(tdeeBaseValue, goal, weight, leanBodyMass);
+                    break;
+                case 'who':
+                    macrosValue = calculateMacrosWHO(tdeeValue, goal, weight);
+                    macrosBaseValue = calculateMacrosISSN(tdeeBaseValue, goal, weight, leanBodyMass);
+                    break;
+                default:
+                    macrosValue = calculateMacrosISSN(tdeeValue, goal, weight, leanBodyMass);
+                    macrosBaseValue = calculateMacrosACSM(tdeeBaseValue, goal, weight);
+            }
+
+            // Update BMR result
+            const bmrResult = document.getElementById('bmrResult');
+            if (bmrFormula !== 'mifflin') {
+                bmrResult.innerHTML = `
+                    <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-1">
+                        ${formatNumber(Math.round(bmrValue))}
+                    </div>
+                    <div class="text-xs sm:text-sm text-gray-400">(${formatNumber(Math.round(bmrBaseValue))})</div>
+                    <div class="text-gray-400 text-xs sm:text-sm mt-1">ккал/сутки</div>
+                `;
+            } else {
+                bmrResult.innerHTML = `
+                    <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                        ${formatNumber(Math.round(bmrValue))}
+                    </div>
+                    <div class="text-gray-400 text-xs sm:text-sm mt-1">ккал/сутки</div>
+                `;
+            }
+
+            // Update TDEE result
+            const tdeeResult = document.getElementById('tdeeResult');
+            if (tdeeFormula !== 'multiplier') {
+                tdeeResult.innerHTML = `
+                    <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-1">
+                        ${formatNumber(Math.round(tdeeValue))}
+                    </div>
+                    <div class="text-xs sm:text-sm text-gray-400">(${formatNumber(Math.round(tdeeBaseValue))})</div>
+                    <div class="text-gray-400 text-xs sm:text-sm mt-1">ккал/сутки</div>
+                `;
+            } else {
+                tdeeResult.innerHTML = `
+                    <div class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                        ${formatNumber(Math.round(tdeeValue))}
+                    </div>
+                    <div class="text-gray-400 text-xs sm:text-sm mt-1">ккал/сутки</div>
+                `;
+            }
+
+            // Update macro results
+            const proteinResult = document.getElementById('proteinResult');
+            const fatResult = document.getElementById('fatResult');
+            const carbsResult = document.getElementById('carbsResult');
+
+            if (macroFormula !== 'issn') {
+                proteinResult.innerHTML = `
+                    <div class="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-1">
+                        ${macrosValue.protein} г
+                    </div>
+                    <div class="text-xs text-gray-400">(${macrosBaseValue.protein} г)</div>
+                `;
+                fatResult.innerHTML = `
+                    <div class="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-1">
+                        ${macrosValue.fat} г
+                    </div>
+                    <div class="text-xs text-gray-400">(${macrosBaseValue.fat} г)</div>
+                `;
+                carbsResult.innerHTML = `
+                    <div class="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-1">
+                        ${macrosValue.carbs} г
+                    </div>
+                    <div class="text-xs text-gray-400">(${macrosBaseValue.carbs} г)</div>
+                `;
+            } else {
+                proteinResult.textContent = `${macrosValue.protein} г`;
+                fatResult.textContent = `${macrosValue.fat} г`;
+                carbsResult.textContent = `${macrosValue.carbs} г`;
+            }
+
+            // Update descriptions
+            document.getElementById('bmrDesc').textContent = formulas.bmr[bmrFormula].description;
+            document.getElementById('tdeeDesc').textContent = formulas.tdee[tdeeFormula].description;
+            document.getElementById('macroDesc').textContent = formulas.macro[macroFormula].description;
+
+            document.getElementById('bmrFormulaInfo').textContent = `${formulas.bmr[bmrFormula].name} - ${formulas.bmr[bmrFormula].description}`;
+            document.getElementById('tdeeFormulaInfo').textContent = `${formulas.tdee[tdeeFormula].name} - ${formulas.tdee[tdeeFormula].description}`;
+            document.getElementById('macroFormulaInfo').textContent = `${formulas.macro[macroFormula].name} - ${formulas.macro[macroFormula].description}`;
+        }
+
+        // Add event listeners to all form elements
+        document.addEventListener('DOMContentLoaded', function() {
+            const formElements = document.querySelectorAll('input, select');
+            formElements.forEach(element => {
+                element.addEventListener('input', updateResults);
+            });
+            
+            // Initial calculation
+            updateResults();
+        });
+    </script>
+</body>
+</html>
+```
